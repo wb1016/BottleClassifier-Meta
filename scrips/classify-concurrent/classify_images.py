@@ -30,7 +30,7 @@ SYSTEM_PROMPT = """You are an image classifier for plastic bottle images. Classi
 
 1 - Colorless transparent plastic bottle WITHOUT any label sticker (dented or not)
 2 - Colorless transparent plastic bottle WITH label sticker (dented or not)
-3 - None of the above (colored bottle, dirty bottle, not a bottle, etc.)
+3 - None of the above (colored bottle, dirty bottle, bottle filled with something, not a bottle, etc.)
 
 Respond with ONLY a single digit: 1, 2, or 3. No explanation, no punctuation, just the digit."""
 
