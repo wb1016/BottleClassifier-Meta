@@ -17,4 +17,4 @@ output_with_label_dir: "./output/with_label"
 output_bad_dir: "./output/bad"
 
 # Number of concurrent workers for parallel processing
-max_workers: 12
+max_workers: 16
