@@ -1,0 +1,20 @@
+# OpenRouter API key
+api_key: "your-openrouter-api-key-here"
+
+# Vision model to use (must support image input)
+model: "qwen/qwen3.5-flash-02-23"
+
+# Input directory containing plastic bottle images
+input_dir: "./input_images"
+
+# Output directory for colorless transparent bottles WITHOUT label sticker
+output_no_label_dir: "./output/no_label"
+
+# Output directory for colorless transparent bottles WITH label sticker
+output_with_label_dir: "./output/with_label"
+
+# Output directory for bad/other images (colored, dirty, not a bottle)
+output_bad_dir: "./output/bad"
+
+# Number of concurrent workers for parallel processing
+max_workers: 12
