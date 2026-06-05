@@ -1,5 +1,5 @@
 # OpenRouter API key
-api_key: "your-openrouter-api-key-here"
+api_key: ""
 
 # Vision model to use (must support image input)
 model: "qwen/qwen3.5-flash-02-23"

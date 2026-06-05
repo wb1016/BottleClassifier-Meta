@@ -1,0 +1,20 @@
+# OpenRouter API key
+api_key: ""
+
+# Vision model to use (must support image input)
+model: "qwen/qwen3.5-flash-02-23"
+
+# Input directory containing "bad/other" (class 3) images to sub-classify
+input_dir: "./input_images"
+
+# Output directory for colored / non-transparent bottles
+output_colored_dir: "./output/colored"
+
+# Output directory for dirty / contaminated bottles
+output_dirty_dir: "./output/dirty"
+
+# Output directory for non-bottle items (other objects, garbage, etc.)
+output_not_bottle_dir: "./output/not_bottle"
+
+# Number of concurrent workers for parallel processing
+max_workers: 32
