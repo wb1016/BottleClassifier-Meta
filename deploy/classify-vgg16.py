@@ -9,13 +9,13 @@ Classification categories:
 
 Usage:
   # Single image
-  python classify.py --model best_finetune.keras --image photo.jpg
+  python classify.py --model best_step6_vgg16_finetuned.keras --image photo.jpg
 
   # Directory of images (model stays loaded for speed)
-  python classify.py --model best_finetune.keras --image ./photos/
+  python classify.py --model best_step6_vgg16_finetuned.keras --image ./photos/
 
   # Show timing information
-  python classify.py --model best_finetune.keras --image ./photos/ --time
+  python classify.py --model best_step6_vgg16_finetuned.keras --image ./photos/ --time
 """
 
 import argparse
@@ -26,77 +26,23 @@ import time
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing import image
-from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
 
 # ── Class mapping (alphabetical order from ImageDataGenerator.flow_from_directory) ──
 CLASS_NAMES = ["bad", "no_label", "with_label"]
 
 CLASS_DESCRIPTIONS = {
-    "bad": "Bad (dirty/colored/not-a-bottle / 재활용 불가)",
-    "no_label": "No label (transparent, recyclable as-is / 즉시 재활용)",
-    "with_label": "With label (remove sticker before recycling / 라벨 제거 후 재활용)",
+    "bad": "Bad (dirty/colored/not-a-bottle)",
+    "no_label": "No label (transparent, recyclable as-is)",
+    "with_label": "With label (remove sticker before recycling)",
 }
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".tif"}
-
-# ── Model constants (InceptionResNetV2) ──
-IMG_SIZE = 299
-
-# ── Accepted model file extensions ──
-MODEL_EXTENSIONS = {".keras", ".h5", ".hdf5"}
 
 
 def load_model(model_path: str):
     """Load and return a Keras model."""
     print(f"Loading model: {model_path}")
-    if not os.path.isfile(model_path):
-        # Try falling back to .h5 extension
-        base, _ = os.path.splitext(model_path)
-        alt_path = base + ".h5"
-        if os.path.isfile(alt_path):
-            print(f"  '{model_path}' not found, trying '{alt_path}'")
-            model_path = alt_path
-        else:
-            print(f"Error: Model file '{model_path}' not found (and no .h5 fallback either).")
-            sys.exit(1)
-    try:
-        model = tf.keras.models.load_model(model_path)
-    except (OSError, ValueError) as e:
-        err_msg = str(e)
-        # Handle custom layer issues (e.g. newer Keras → older Keras)
-        if 'Unknown layer' in err_msg or 'custom_objects' in err_msg:
-            print("⚠️  Detected unknown custom layer — retrying with compat mode...")
-            # Define common custom layers from newer Keras for backward compat
-            class CustomScaleLayer(tf.keras.layers.Layer):
-                def __init__(self, scale=1.0, **kwargs):
-                    super().__init__(**kwargs)
-                    self.scale = float(scale)
-                def call(self, inputs):
-                    if isinstance(inputs, (list, tuple)):
-                        return [inp * self.scale for inp in inputs]
-                    return inputs * self.scale
-                def get_config(self):
-                    config = super().get_config()
-                    config.update({'scale': self.scale})
-                    return config
-            try:
-                model = tf.keras.models.load_model(
-                    model_path,
-                    custom_objects={'CustomScaleLayer': CustomScaleLayer},
-                    compile=False,  # 추론만 하므로 optimizer 불필요
-                )
-                print("Model loaded successfully (with custom layer workaround).\n")
-                return model
-            except Exception as e2:
-                print(f"Error: Still failed after custom_objects workaround: {e2}")
-                sys.exit(1)
-        print(f"Error: Failed to load model. This may be a format compatibility issue.")
-        print(f"  On older Keras versions, try saving the model in .h5 format:")
-        print(f"    model.save('{os.path.splitext(os.path.basename(model_path))[0]}.h5', save_format='h5')")
-        print(f"  Or convert using: python -c \"import tensorflow as tf; ")
-        print(f"    m = tf.keras.models.load_model('{model_path}'); ")
-        print(f"    m.save('{os.path.splitext(os.path.basename(model_path))[0]}.h5', save_format='h5')\"")
-        sys.exit(1)
+    model = tf.keras.models.load_model(model_path)
     print("Model loaded successfully.\n")
     return model
 
@@ -108,14 +54,13 @@ def classify_single(model, img_path: str) -> tuple[str, float, np.ndarray]:
     Returns:
         (predicted_class, confidence, all_probabilities)
     """
-    # Load and resize image to 299x299 (InceptionResNetV2 input size)
-    img = image.load_img(img_path, target_size=(IMG_SIZE, IMG_SIZE))
+    # Load and resize image to 224x224 (VGG16 input size)
+    img = image.load_img(img_path, target_size=(224, 224))
 
     # Convert to numpy array and preprocess
-    # InceptionResNetV2 uses preprocess_input ([-1, 1] scaling) instead of /255
     img_array = image.img_to_array(img)
+    img_array = img_array / 255.0  # rescale (matches training preprocessing)
     img_array = np.expand_dims(img_array, axis=0)  # add batch dimension
-    img_array = preprocess_input(img_array)          # match training preprocessing
 
     # Predict
     predictions = model.predict(img_array, verbose=0)
